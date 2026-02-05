@@ -26,7 +26,6 @@ package-lock.json
 cmd/**/__*
 
 .DS_Store
-go.mod
 
 postgres-data/
 
