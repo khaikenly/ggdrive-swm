@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0f0f0f;
+  --bg-sidebar: #1c1d1f;
+  --bg-card: #1a1a1a;
+  --text: #fafafa;
+  --text-muted: #a3a3a3;
+  --accent: #a435f0;
+  --accent-hover: #8710d8;
+  --border: rgba(255,255,255,0.08);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  scrollbar-color: rgba(164, 53, 240, 0.4) transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(164, 53, 240, 0.3), rgba(164, 53, 240, 0.5));
+  border-radius: 3px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(164, 53, 240, 0.5), rgba(164, 53, 240, 0.7));
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:active {
+  background: var(--accent);
+}
