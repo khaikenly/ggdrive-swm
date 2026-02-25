@@ -31,19 +31,22 @@ export function FolderPicker({ selectedIds, onToggle }: FolderPickerProps) {
     }
   }, []);
 
-  const loadChildren = useCallback(async (folderId: string) => {
-    if (childrenCache[folderId]) {
-      setExpanded((prev) => new Set(prev).add(folderId));
-      return;
-    }
-    try {
-      const data = await listFolderChildren(folderId);
-      setChildrenCache((prev) => ({ ...prev, [folderId]: data }));
-      setExpanded((prev) => new Set(prev).add(folderId));
-    } catch {
-      setError('Failed to load folder contents');
-    }
-  }, [childrenCache]);
+  const loadChildren = useCallback(
+    async (folderId: string) => {
+      if (childrenCache[folderId]) {
+        setExpanded((prev) => new Set(prev).add(folderId));
+        return;
+      }
+      try {
+        const data = await listFolderChildren(folderId);
+        setChildrenCache((prev) => ({ ...prev, [folderId]: data }));
+        setExpanded((prev) => new Set(prev).add(folderId));
+      } catch {
+        setError('Failed to load folder contents');
+      }
+    },
+    [childrenCache]
+  );
 
   const toggleExpand = (folderId: string) => {
     if (expanded.has(folderId)) {
@@ -66,9 +69,7 @@ export function FolderPicker({ selectedIds, onToggle }: FolderPickerProps) {
       >
         {loading ? 'Đang tải...' : 'Tải danh sách thư mục'}
       </button>
-      {error && (
-        <p className="text-red-400 text-xs">{error}</p>
-      )}
+      {error && <p className="text-red-400 text-xs">{error}</p>}
       {folders.length === 0 && !loading && (
         <p className="text-[var(--text-muted)] text-xs">
           Nhấn nút trên để xem thư mục Shared with me
@@ -79,12 +80,11 @@ export function FolderPicker({ selectedIds, onToggle }: FolderPickerProps) {
           <FolderItem
             key={f.id}
             file={f}
+            selectedIds={selectedIds}
             isExpanded={expanded.has(f.id)}
             onToggleExpand={() => toggleExpand(f.id)}
-            onSelect={() => onToggle(f.id, f.name)}
-            isSelected={selectedIds.has(f.id)}
+            onToggleFolder={onToggle}
             children={childrenCache[f.id]}
-            loadChildren={() => loadChildren(f.id)}
           />
         ))}
       </ul>
@@ -94,22 +94,20 @@ export function FolderPicker({ selectedIds, onToggle }: FolderPickerProps) {
 
 function FolderItem({
   file,
+  selectedIds,
   isExpanded,
   onToggleExpand,
-  onSelect,
-  isSelected,
+  onToggleFolder,
   children,
-  loadChildren,
 }: {
   file: DriveFile;
+  selectedIds: Set<string>;
   isExpanded: boolean;
   onToggleExpand: () => void;
-  onSelect: () => void;
-  isSelected: boolean;
+  onToggleFolder: (id: string, name: string) => void;
   children?: { folders: DriveFile[]; videos: DriveFile[] };
-  loadChildren: () => void;
 }) {
-  const hasChildren = (children?.folders?.length ?? 0) + (children?.videos?.length ?? 0) > 0;
+  const isTopSelected = selectedIds.has(file.id);
 
   return (
     <li>
@@ -119,13 +117,13 @@ function FolderItem({
           className="w-5 h-5 flex items-center justify-center text-[var(--text-muted)] hover:text-white shrink-0"
           aria-label={isExpanded ? 'Thu gọn' : 'Mở rộng'}
         >
-          {hasChildren ? (isExpanded ? '−' : '+') : ' '}
+          {isExpanded ? '−' : '+'}
         </button>
         <label className="flex-1 flex items-center gap-2 cursor-pointer min-w-0">
           <input
             type="checkbox"
-            checked={isSelected}
-            onChange={onSelect}
+            checked={isTopSelected}
+            onChange={() => onToggleFolder(file.id, file.name)}
             className="rounded border-white/20 shrink-0"
           />
           <span className="text-sm truncate">{file.name}</span>
@@ -133,18 +131,23 @@ function FolderItem({
       </div>
       {isExpanded && children && (
         <ul className="ml-5 pl-2 border-l border-[var(--border)] space-y-0.5 py-1">
-          {children.folders?.map((sub) => (
-            <li key={sub.id} className="text-xs text-[var(--text-muted)]">
-              📁 {sub.name}
-            </li>
-          ))}
-          {children.videos?.map((v) => (
-            <li key={v.id} className="text-xs text-[var(--text-muted)]">
-              🎬 {v.name}
-            </li>
-          ))}
+          {children.folders?.map((sub) => {
+            const isSubSelected = selectedIds.has(sub.id);
+            return (
+              <li key={sub.id} className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                <input
+                  type="checkbox"
+                  checked={isSubSelected}
+                  onChange={() => onToggleFolder(sub.id, sub.name)}
+                  className="rounded border-white/20 shrink-0"
+                />
+                <span className="truncate">📁 {sub.name}</span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </li>
   );
 }
+
